@@ -1,0 +1,266 @@
+﻿<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+		<link rel="stylesheet" href="https://cdn.bootcss.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm"
+		 crossorigin="anonymous">
+		<title>鹏业点餐</title>
+	</head>
+	<body>
+
+		<div id="order" class="container-fluid" style="padding: 0 0 0 2em;">
+			<div class="row" style="padding-bottom: 10px;">
+				<div class="align-self-center">
+					欢迎 {{userName}} 点餐，订餐电话：{{sysParams.ContactMob}}
+				</div>
+			</div>
+			<div class="row">
+				<div>品种</div>
+				<input class="" type="text" v-model="order.Product">
+			</div>
+			<div class="row" style="padding-bottom: 10px;">
+				<div style="padding-bottom: 10px;">
+					<div class="custom-radio custom-control" v-for="(product, index) in sysParams.Products">
+						<label class="custom-control-label" v-on:click="selectProduct(index)">{{product}}</label>
+					</div>
+				</div>
+			</div>
+			<div class="row">
+				<div>备注</div>
+				<input class="" type="text" v-model="order.Memo">
+			</div>
+			<div class="row" style="padding-top: 2em;">
+				<div class="col-4">
+					<button type="button" v-bind:disabled="!placeEnabled" class="btn btn-info" v-on:click="placeOrder">提交</button>
+				</div>
+				<div class="col-4">
+					<button type="button" v-bind:disabled="!placeEnabled" class="btn btn-info" v-on:click="cancelOrder">取消</button>
+				</div>
+				<div class="col-4">
+					<button type="button" v-bind:disabled="!finishedEnabled" class="btn btn-info" v-on:click="finishOrder">取餐</button>
+				</div>
+			</div>
+			<div style="padding-top: 1em;" v-show="isAdmin()">
+				<div class="row">
+					<table height="100%" width="90%" cellSpacing="0" cellPadding="0" border="1" bordercolor="black">
+						<head>
+							<td width="10%" style="text-align: center;">序号</td>
+							<td width="20%" style="text-align: center;">姓名</td>
+							<td width="40%" style="text-align: center;">品种</td>
+							<td width="30%" style="text-align: center;">备注</td>
+						</head>
+						<tr v-for="(order, index) in orders">
+							<td style="text-align: center;">{{index+1}}</td>
+							<td style="text-align: center;">{{order.Name}}</td>
+							<td style="text-align: center;">{{order.Product}}</td>
+							<td style="text-align: center;">{{order.Memo}}</td>
+						</tr>
+					</table>
+				</div>
+				<div class="row" style="padding-top: 1em;">
+					<div class="col-6">
+						<button type="button" class="btn btn-info" v-on:click="modifySysParams">保存系统参数</button>
+					</div>
+					<div class="col-6">
+						<button type="button" class="btn btn-info" v-on:click="refreshOrderList">刷新订餐清单</button>
+					</div>
+				</div>
+				<div class="row" style="padding-top: 1em;">
+					联系人手机
+					<input class="" type="text" v-model="sysParams.ContactMob">
+					截止时间(如1050=17*60+30)
+					<input class="" type="number" v-model="sysParams.Deadline">
+				</div>
+				<div class="row">
+					订餐品种
+					<textarea class="form-control" placeholder="" v-model="products"></textarea>
+				</div>
+			</div>
+		</div>
+	</body>
+
+</html>
+
+<script src="//cdn.bootcss.com/jquery/3.2.1/jquery.min.js"></script>
+<script src="//open.mypy.cn/lib/scripts/0.0.2/jquery.json.js"></script>
+<script src="//cdn.bootcss.com/popper.js/1.12.5/umd/popper.min.js"></script>
+<script src="//cdn.bootcss.com/bootstrap/4.1.0/js/bootstrap.min.js"></script>
+<script src="//cdn.bootcss.com/jquery-cookie/1.4.1/jquery.cookie.min.js"></script>
+<script src="//open.mypy.cn/lib/scripts/0.0.2/PsCommon.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/vue@2.5.17/dist/vue.js"></script>
+<script src="//g.alicdn.com/dingding/dingtalk-jsapi/2.0.57/dingtalk.open.js"></script>
+<!-- <script type="text/javascript" name="orderSvr" src="http://127.0.0.1:50555/service/OrderJson.sjs"></script> -->
+<script type="text/javascript" name="orderSvr" src="/Service/orderJson.sjs"></script>
+<script type="text/javascript" name="autherSvr" src="/Service/autherJson.sjs"></script>
+<script src="js/domain.js"></script>
+<script>
+	var orderInfo = {
+		userId: "",
+		userName: "",
+		products: "",
+		sysParams: new SysParams(),
+		order: new Order(),
+		placeEnabled: false,
+		finishedEnabled: false,
+		orders: new Array()
+	}
+
+	function getProductsText(products) {
+		var s = "";
+		for (var i = 0; i < products.length; i++) {
+			s = s + products[i] + "\n";
+		}
+		return s;
+	}
+
+	function getProductsArray(products) {
+		var ary = new Array();
+		var ss = products.split("\n");
+		for (var i = 0; i < ss.length; i++) {
+			var s = ss[i].trim();
+			if (!isNullorEmpty(s))
+				ary.add(s);
+		}
+		return ary;
+	}
+
+	var app = new Vue({
+		el: '#order',
+		data: orderInfo,
+		watch: {
+			userId: function() {
+				vm = this;
+				var userId = vm.userId;
+				orderSvr.GetLast(userId,
+					function(result) {
+						if (result)
+							vm.order = result;
+						else
+							vm.order = new Order();
+					}
+				);
+				orderSvr.GetSysParams(userId,
+					function(para) {
+						vm.sysParams = para;
+						vm.refreshBtnState();
+						vm.products = getProductsText(para.Products);
+					}
+				);
+			}
+		},
+		methods: {
+			refreshBtnState: function() {
+				var dt = new Date();
+				var dl = dt.getHours() * 60 + dt.getMinutes();
+				this.placeEnabled = false;
+				this.finishedEnabled = false;
+				if (this.sysParams) {
+					this.placeEnabled = dl > this.sysParams.Deadline - 120 && dl < this.sysParams.Deadline;
+					this.finishedEnabled = dl > this.sysParams.Deadline + 15;
+				}
+			},
+			isAdmin: function() {
+				return this.userId == this.sysParams.AdminUserId;
+			},
+			selectProduct: function(index) {
+				this.order.Product = this.sysParams.Products[index];
+			},
+			placeOrder: function() {
+				orderSvr.PlaceOrder(this.userId, this.order.Product, 1, this.order.Memo,
+					function(code) {
+						if (code == 0)
+							alert("下单成功");
+						else
+							alert("下单失败: " + code);
+					}
+				);
+			},
+			cancelOrder: function() {
+				vm = this;
+				var userId = vm.userId;
+				orderSvr.Delete(userId,
+					function() {
+						orderSvr.Get(userId, "",
+							function(order) {
+								if (!order) {
+									vm.order.Product = "";
+									vm.order.Memo = "";
+									alert("订单删除成功");
+								}
+							}
+						);
+					},
+					function(err) {
+						console.log($.toJSON(err));
+					}
+				);
+			},
+			finishOrder: function() {
+				orderSvr.FinishedOrder(this.userId,
+					function(ans) {
+						if (ans == 0)
+							alert("已通知其他小伙伴取餐");
+					}
+				);
+			},
+			modifySysParams: function() {
+				var vm = this;
+				var sysPars = SysUtils.clone(this.sysParams);
+				sysPars.Products = getProductsArray(this.products);
+				orderSvr.UpdateSysParams(this.userId, sysPars, 0,
+					function(code) {
+						if (code == 0) {
+							vm.sysParams = sysPars;
+							alert("保存系统参数成功");
+						} else
+							alert("保存失败: " + code);
+					}
+				);
+			},
+			refreshOrderList: function() {
+				var vm = this;
+				orderSvr.GetOrders(this.userId, "", 1,
+					function(orders) {
+						if (orders) {
+							vm.orders = orders._Items;
+						}
+					}
+				);
+			}
+		}
+	});
+
+	function doLoginSucess(code) {
+		autherSvr.GetAccessUser(code,
+			function(user) {
+				orderInfo.userId = user.userid;
+				orderInfo.userName = user.name;
+			},
+			function(err) {
+				alert(SysUtils.getErrorMsg(err, false));
+				Console.log(SysUtils.getErrorMsg(err, true));
+			}
+		);
+	}
+
+// 	orderInfo.userId = "zp";
+// 	orderInfo.userName = "张鹏";
+
+	dd.ready(function() {
+		try {
+			dd.runtime.permission.requestAuthCode({
+                corpId: "dinga1f24b7b258cf6c235c2f4657eb6378f", // 企业id
+				onSuccess: function(info) {
+					code = info.code // 通过该免登授权码可以获取用户身份
+					doLoginSucess(code);
+				},
+				onFail: function(err) {
+					alert('dd error: ' + JSON.stringify(err));
+				}
+			});
+		} catch (err) {
+			
+		}
+	});
+</script>

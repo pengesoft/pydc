@@ -1,0 +1,2 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<PsDataPacket Id="OrderManager" Service="Pydc.Service.IOrderManager, Pydc" RspType="xml" />
