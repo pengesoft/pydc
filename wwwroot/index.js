@@ -15,23 +15,31 @@
         products: '',
         sysParams: new SysParams(),
         userId: '',
-        userName: '',
+        userName: ''
       }
     },
     watch: {
       userId() {
-        orderSvr.GetLast(this.userId, (result) => {
-            this.isAllreadyOrdered = !!result;
-            if (result) {
-              this.order = result;
-            } else {
-              this.order = new Order();
-            }
+        orderSvr.Get(this.userId, '', res => {
+          this.isAllreadyOrdered = !!res;
+          if (res) {
+            this.order = res;
+          } else {
+            orderSvr.GetLast(this.userId, res2 => {
+              if (res2) {
+                this.order = res2;
+              } else {
+                this.order = new Order();
+              }
+            }, err => {
+              this.showMsg('发生错误');
+            });
           }
-        );
+        }, err => {
+          this.showMsg('发生错误');
+        });
         orderSvr.GetSysParams(this.userId, (para) => {
             this.sysParams = para;
-            this.sysParams.Deadline = 1000;
             this.products = getProductsText(para.Products);
           }
         );
@@ -69,7 +77,7 @@
             );
           }, (err) => {
             this.isLoading = false;
-            console.log($.toJSON(err));
+            console.error($.toJSON(err));
           }
         );
       },
@@ -126,14 +134,16 @@
       placeEnabled() {
         if (this.sysParams) {
           const dl = this.now.getHours() * 60 + this.now.getMinutes();
-          return (dl > this.sysParams.Deadline - 120) && (dl < this.sysParams.Deadline);
+          return (dl >= this.sysParams.Deadline - 120) && (dl < this.sysParams.Deadline);
         }
+        return false;
       },
       finishedEnabled() {
         if (this.sysParams) {
           const dl = this.now.getHours() * 60 + this.now.getMinutes();
-          return dl > this.sysParams.Deadline;
+          return dl >= this.sysParams.Deadline;
         }
+        return false;
       },
       placeTime() {
         const dealTime = new Date(new Date().setHours(Math.floor(this.sysParams.Deadline / 60), this.sysParams.Deadline % 60, 0, 0) - (120 * 60 * 1000));
@@ -199,7 +209,7 @@
         app.userName = user.name;
       }, (err) => {
         this.showMsg(systemUtil.getErrorMsg(err, false));
-        Console.log(systemUtil.getErrorMsg(err, true));
+        console.error(systemUtil.getErrorMsg(err, true));
       }
     );
   }
