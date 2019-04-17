@@ -40,7 +40,6 @@
         });
         orderSvr.GetSysParams(this.userId, (para) => {
             this.sysParams = para;
-            this.sysParams.Deadline = 1000;
             this.products = getProductsText(para.Products);
           }
         );
@@ -78,7 +77,7 @@
             );
           }, (err) => {
             this.isLoading = false;
-            console.log($.toJSON(err));
+            console.error($.toJSON(err));
           }
         );
       },
@@ -208,7 +207,7 @@
         app.userName = user.name;
       }, (err) => {
         this.showMsg(systemUtil.getErrorMsg(err, false));
-        Console.log(systemUtil.getErrorMsg(err, true));
+        console.error(systemUtil.getErrorMsg(err, true));
       }
     );
   }
