@@ -15,20 +15,29 @@
         products: '',
         sysParams: new SysParams(),
         userId: '',
-        userName: '',
+        userName: ''
       }
     },
     watch: {
       userId() {
-        orderSvr.GetLast(this.userId, (result) => {
-            this.isAllreadyOrdered = !!result;
-            if (result) {
-              this.order = result;
-            } else {
-              this.order = new Order();
-            }
+        orderSvr.Get(this.userId, '', res => {
+          this.isAllreadyOrdered = !!res;
+          if (res) {
+            this.order = res;
+          } else {
+            orderSvr.GetLast(this.userId, res2 => {
+              if (res2) {
+                this.order = res2;
+              } else {
+                this.order = new Order();
+              }
+            }, err => {
+              this.showMsg('发生错误');
+            });
           }
-        );
+        }, err => {
+          this.showMsg('发生错误');
+        });
         orderSvr.GetSysParams(this.userId, (para) => {
             this.sysParams = para;
             this.sysParams.Deadline = 1000;
