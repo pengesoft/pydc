@@ -134,14 +134,16 @@
       placeEnabled() {
         if (this.sysParams) {
           const dl = this.now.getHours() * 60 + this.now.getMinutes();
-          return (dl > this.sysParams.Deadline - 120) && (dl < this.sysParams.Deadline);
+          return (dl >= this.sysParams.Deadline - 120) && (dl < this.sysParams.Deadline);
         }
+        return false;
       },
       finishedEnabled() {
         if (this.sysParams) {
           const dl = this.now.getHours() * 60 + this.now.getMinutes();
-          return dl > this.sysParams.Deadline;
+          return dl >= this.sysParams.Deadline;
         }
+        return false;
       },
       placeTime() {
         const dealTime = new Date(new Date().setHours(Math.floor(this.sysParams.Deadline / 60), this.sysParams.Deadline % 60, 0, 0) - (120 * 60 * 1000));

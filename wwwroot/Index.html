@@ -60,7 +60,7 @@
   </div>
   <div class="form-group">
     <div class="text-center text-muted" v-if="!placeEnabled && !finishedEnabled">
-      <span>未到点餐时间 ({{placeTime}})</span>
+      <span class="icon ion-md-time"></span><span class="ml-2">未到点餐时间 ({{placeTime}})</span>
     </div>
     <div v-if="placeEnabled">
       <button type="button" class="form-control btn btn-outline-success" v-if="!isAllreadyOrdered" v-bind:disabled="isLoading" v-on:click="placeOrder">
@@ -80,10 +80,6 @@
         <span class="ml-1">通知取餐</span>
       </button>
     </div>
-  </div>
-  <div class="text-muted text-right" v-if="!placeEnabled && !finishedEnabled && placeTime > 0">
-    <span class="icon ion-md-time"></span>
-    <span class="ml-1">距离可点餐时间还有{{placeTime}}分钟</span>
   </div>
   <div class="my-3" v-if="isAdmin">
     <table class="table table-bordered table-sm table-fixed">
