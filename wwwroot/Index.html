@@ -6,6 +6,7 @@
   <link rel="stylesheet" href="https://cdn.bootcss.com/bootstrap/4.0.0/css/bootstrap.min.css"
         integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
   <link rel="stylesheet" href="https://unpkg.com/ionicons@4.5.5/dist/css/ionicons.min.css">
+  <link rel="stylesheet" href="css/awesome-bootstrap-checkbox.css" />
   <title>鹏业点餐</title>
   <style>
     textarea {
@@ -38,96 +39,199 @@
   </style>
 </head>
 <body>
-<div id="order" class="container-fluid">
-  <div class="my-3">
-    <div>欢迎 <b>{{userName}}</b></div>
-    <div>订餐电话：<span class="text-muted">{{sysParams.ContactMob}}</span></div>
-    <div>您的点餐状态：
-      <span class="text-success" v-if="isAllreadyOrdered">已点餐</span>
-      <span class="text-secondary" v-else>未点餐</span>
-    </div>
-  </div>
-  <div class="form-group">
-    <label>品种</label>
-    <select class="form-control" type="text" v-model="order.Product" v-bind:disabled="isAllreadyOrdered || finishedEnabled">
-      <option v-bind:value="null">随便</option>
-      <option v-bind:value="product" v-for="(product, index) in sysParams.Products">{{product}}</option>
-    </select>
-  </div>
-  <div class="form-group">
-    <label>备注</label>
-    <textarea rows="4" class="form-control" v-model="order.Memo" v-bind:disabled="isAllreadyOrdered || finishedEnabled"></textarea>
-  </div>
-  <div class="form-group">
-    <div class="text-center text-muted" v-if="!placeEnabled && !finishedEnabled">
-      <span class="icon ion-md-time"></span><span class="ml-2">未到点餐时间 ({{placeTime}})</span>
-    </div>
-    <div v-if="placeEnabled">
-      <button type="button" class="form-control btn btn-outline-success" v-if="!isAllreadyOrdered" v-bind:disabled="isLoading" v-on:click="placeOrder">
-        <span class="icon ion-md-checkmark-circle-outline"></span>
-        <span class="ml-1">确认点餐</span>
-        <span>({{endPlaceTime}})</span>
-      </button>
-      <button type="button" class="form-control btn btn-outline-secondary" v-if="isAllreadyOrdered" v-bind:disabled="isLoading" v-on:click="cancelOrder">
-        <span class="icon ion-md-close-circle-outline"></span>
-        <span class="ml-1">取消点餐</span>
-        <span>({{endPlaceTime}})</span>
-      </button>
-    </div>
-    <div v-if="finishedEnabled">
-      <button type="button" class="form-control btn btn-outline-info" v-bind:disabled="isLoading" v-on:click="finishOrder">
-        <span class="icon ion-md-alarm"></span>
-        <span class="ml-1">通知取餐</span>
-      </button>
-    </div>
-  </div>
-  <div class="my-3" v-if="isAdmin">
-    <table class="table table-bordered table-sm table-fixed">
-      <thead>
-      <tr>
-        <td width="15%" class="text-center">序号</td>
-        <td width="20%" class="text-center">姓名</td>
-        <td width="40%" class="text-center">品种</td>
-        <td class="text-center">备注</td>
-      </tr>
-      </thead>
-      <tbody>
-      <tr v-for="(order, index) in orders">
-        <td style="text-align: center;">{{index+1}}</td>
-        <td style="text-align: center;">{{order.Name}}</td>
-        <td style="text-align: center;">{{order.Product}}</td>
-        <td style="text-align: center;">{{order.Memo}}</td>
-      </tr>
-      </tbody>
-    </table>
-    <div class="text-right">
-      <div class="form-group">
-        <button type="button" class="btn btn-outline-primary" v-on:click="refreshOrderList">
-          <span class="icon ion-md-refresh"></span>
-          <span class="ml-1">刷新订餐清单</span>
-        </button>
-      </div>
+<!--<div id="order" class="container-fluid">
+    <div class="my-3">
+        <div>欢迎 <b>{{userName}}</b></div>
+        <div>订餐电话：<span class="text-muted">{{sysParams.ContactMob}}</span></div>
+        <div>您的点餐状态：
+            <span class="text-success" v-if="isAllreadyOrdered">已点餐</span>
+            <span class="text-secondary" v-else>未点餐</span>
+        </div>
     </div>
     <div class="form-group">
-      <label>联系人手机</label>
-      <input class="form-control" v-model="sysParams.ContactMob">
+        <label>品种</label>
+        <select class="form-control" type="text" v-model="order.Product" v-bind:disabled="isAllreadyOrdered || finishedEnabled">
+            <option v-bind:value="null">随便</option>
+            <option v-bind:value="product" v-for="(product, index) in sysParams.Products">{{product}}</option>
+        </select>
     </div>
     <div class="form-group">
-      <label>截止时间(如1050=17*60+30)</label>
-      <input type="number" class="form-control" v-model="sysParams.Deadline">
+        <label>备注</label>
+        <textarea rows="4" class="form-control" v-model="order.Memo" v-bind:disabled="isAllreadyOrdered || finishedEnabled"></textarea>
     </div>
     <div class="form-group">
-      <label>订餐品种</label>
-      <textarea rows="6" class="form-control" v-model="products"></textarea>
+        <div class="text-center text-muted" v-if="!placeEnabled && !finishedEnabled">
+            <span class="icon ion-md-time"></span><span class="ml-2">未到点餐时间 ({{placeTime}})</span>
+        </div>
+        <div v-if="placeEnabled">
+            <button type="button" class="form-control btn btn-outline-success" v-if="!isAllreadyOrdered" v-bind:disabled="isLoading" v-on:click="placeOrder">
+                <span class="icon ion-md-checkmark-circle-outline"></span>
+                <span class="ml-1">确认点餐</span>
+                <span>({{endPlaceTime}})</span>
+            </button>
+            <button type="button" class="form-control btn btn-outline-secondary" v-if="isAllreadyOrdered" v-bind:disabled="isLoading" v-on:click="cancelOrder">
+                <span class="icon ion-md-close-circle-outline"></span>
+                <span class="ml-1">取消点餐</span>
+                <span>({{endPlaceTime}})</span>
+            </button>
+        </div>
+        <div v-if="finishedEnabled">
+            <button type="button" class="form-control btn btn-outline-info" v-bind:disabled="isLoading" v-on:click="finishOrder">
+                <span class="icon ion-md-alarm"></span>
+                <span class="ml-1">通知取餐</span>
+            </button>
+        </div>
     </div>
-    <div class="text-right">
-      <button type="button" class="btn btn-outline-success" v-on:click="modifySysParams">
-        <span class="icon ion-md-checkmark-circle-outline"></span>
-        <span class="ml-1">保存系统参数</span>
-      </button>
+    <div class="my-3" v-if="isAdmin">
+        <table class="table table-bordered table-sm table-fixed">
+            <thead>
+            <tr>
+                <td width="15%" class="text-center">序号</td>
+                <td width="20%" class="text-center">姓名</td>
+                <td width="40%" class="text-center">品种</td>
+                <td class="text-center">备注</td>
+            </tr>
+            </thead>
+            <tbody>
+            <tr v-for="(order, index) in orders">
+                <td style="text-align: center;">{{index+1}}</td>
+                <td style="text-align: center;">{{order.Name}}</td>
+                <td style="text-align: center;">{{order.Product}}</td>
+                <td style="text-align: center;">{{order.Memo}}</td>
+            </tr>
+            </tbody>
+        </table>
+        <div class="text-right">
+            <div class="form-group">
+                <button type="button" class="btn btn-outline-primary" v-on:click="refreshOrderList">
+                    <span class="icon ion-md-refresh"></span>
+                    <span class="ml-1">刷新订餐清单</span>
+                </button>
+            </div>
+        </div>
+        <div class="form-group">
+            <label>联系人手机</label>
+            <input class="form-control" v-model="sysParams.ContactMob">
+        </div>
+        <div class="form-group">
+            <label>截止时间(如1050=17*60+30)</label>
+            <input type="number" class="form-control" v-model="sysParams.Deadline">
+        </div>
+        <div class="form-group">
+            <label>订餐品种</label>
+            <textarea rows="6" class="form-control" v-model="products"></textarea>
+        </div>
+        <div class="text-right">
+            <button type="button" class="btn btn-outline-success" v-on:click="modifySysParams">
+                <span class="icon ion-md-checkmark-circle-outline"></span>
+                <span class="ml-1">保存系统参数</span>
+            </button>
+        </div>
     </div>
-  </div>
-  <div class="msg" v-bind:class="{active : isShowMsg}">{{msg}}</div>
+    <div class="msg" v-bind:class="{active : isShowMsg}">{{msg}}</div>
+</div>-->
+
+<div id="order">
+<!-- header 区域 -->
+    <div>
+        <div>
+            <img src="/img/header.png" style="width: 100%;" />
+        </div>
+        <div style="margin: 15px;">
+            <h3 class="h3">
+                欢迎来到鹏业小食堂~
+            </h3>
+            <p>“鹏业小食堂”火热开张啦，各位客官里面请!</p>
+            <p>请于{{DeadLine}}前点餐，超过{{DeadLine}}请致电掌柜电话{{sysParams.ContactMob}}</p>
+        </div>
+    </div>
+    <!-- 菜品区域 -->
+    <div v-bind:disabled="isAllreadyOrdered || finishedEnabled">
+        <div v-for="(value, key, index) in product_dict">
+            <div style="margin-left: 15px;">
+                <h6>{{index + 1}}. {{key}}&nbsp;<span class="badge badge-pill badge-primary">单选</span></h6>
+                <div class="radio radio-primary form-check" v-for="(item) in value" style="margin-top: 5px;">
+                    <input type="radio" name="item" v-model="order.Product"  v-bind:value="key+'-'+item" class="form-check-input" v-bind:id="key+'-'+ item">
+                    <label class="form-check-label" v-bind:for="key+'-'+ item">
+                        {{item}}
+                    </label>
+                </div>
+            </div>
+            <div style="height: 20px; background-color: #efefef;"></div>
+        </div>
+        <!-- 下单按钮 -->
+        <div style="margin: 15px;">
+            <div class="text-center text-muted" v-if="!placeEnabled && !finishedEnabled">
+                <span class="icon ion-md-time"></span><span class="ml-2">未到点餐时间 ({{placeTime}})</span>
+            </div>
+            <div v-if="placeEnabled" >
+                <button type="button" class="form-control btn btn-outline-success" v-if="!isAllreadyOrdered" v-bind:disabled="isLoading" v-on:click="placeOrder">
+                    <span class="icon ion-md-checkmark-circle-outline"></span>
+                    <span class="ml-1">确认点餐</span>
+                    <span>({{endPlaceTime}})</span>
+                </button>
+                <button type="button" class="form-control btn btn-outline-secondary" v-if="isAllreadyOrdered" v-bind:disabled="isLoading" v-on:click="cancelOrder">
+                    <span class="icon ion-md-close-circle-outline"></span>
+                    <span class="ml-1">取消点餐</span>
+                    <span>({{endPlaceTime}})</span>
+                </button>
+            </div>
+            <div v-if="finishedEnabled">
+                <button type="button" class="form-control btn btn-outline-info" v-bind:disabled="isLoading" v-on:click="finishOrder">
+                    <span class="icon ion-md-alarm"></span>
+                    <span class="ml-1">通知取餐</span>
+                </button>
+            </div>
+        </div>
+    </div>
+    <!-- 管理员区域 -->
+    <div class="my-3" v-if="isAdmin" style="margin: 15px;">
+        <table class="table table-bordered table-sm table-fixed">
+            <thead>
+            <tr>
+                <td width="15%" class="text-center">序号</td>
+                <td width="20%" class="text-center">姓名</td>
+                <td width="40%" class="text-center">品种</td>
+                <td class="text-center">备注</td>
+            </tr>
+            </thead>
+            <tbody>
+            <tr v-for="(order, index) in orders">
+                <td style="text-align: center;">{{index+1}}</td>
+                <td style="text-align: center;">{{order.Name}}</td>
+                <td style="text-align: center;">{{order.Product}}</td>
+                <td style="text-align: center;">{{order.Memo}}</td>
+            </tr>
+            </tbody>
+        </table>
+        <div class="text-right">
+            <div class="form-group">
+                <button type="button" class="btn btn-outline-primary" v-on:click="refreshOrderList">
+                    <span class="icon ion-md-refresh"></span>
+                    <span class="ml-1">刷新订餐清单</span>
+                </button>
+            </div>
+        </div>
+        <div class="form-group">
+            <label>联系人手机</label>
+            <input class="form-control" v-model="sysParams.ContactMob">
+        </div>
+        <div class="form-group">
+            <label>截止时间(如1050=17*60+30)</label>
+            <input type="number" class="form-control" v-model="sysParams.Deadline">
+        </div>
+        <div class="form-group">
+            <label>订餐品种</label>
+            <textarea rows="6" class="form-control" v-model="products"></textarea>
+        </div>
+        <div class="text-right">
+            <button type="button" class="btn btn-outline-success" v-on:click="modifySysParams">
+                <span class="icon ion-md-checkmark-circle-outline"></span>
+                <span class="ml-1">保存系统参数</span>
+            </button>
+        </div>
+    </div>
+    <div class="msg" v-bind:class="{active : isShowMsg}">{{msg}}</div>
 </div>
 <script src="//cdn.bootcss.com/jquery/3.2.1/jquery.min.js"></script>
 <script src="//open.mypy.cn/lib/scripts/0.0.2/jquery.json.js"></script>
