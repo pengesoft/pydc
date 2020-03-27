@@ -18,7 +18,7 @@
                 sysParams: new SysParams(),
                 userId: '',
                 userName: '',
-                adminBane: ''
+                adminBane: '',
             }
         },
         watch: {
@@ -143,8 +143,7 @@
                                     summary[this.orders[i].Product] = 0;
                                 summary[this.orders[i].Product] += 1;
                             }
-
-                            this.orderSummary = summary;
+                            this.orderSummary = summary; 
                         }
                     }
                 );

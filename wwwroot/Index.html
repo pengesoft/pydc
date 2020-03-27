@@ -139,19 +139,18 @@
         </div>
         <div style="margin: 15px;">
             <h3 class="h3">
-                欢迎来到鹏业小食堂~
+                {{sysParams.Title}}
             </h3>
-            <p>“鹏业小食堂”火热开张啦，各位客官里面请!</p>
-            <p>请于{{DeadLine}}前点餐，超过{{DeadLine}}请致电掌柜电话{{sysParams.ContactMob}}</p>
+            <p>{{sysParams.Description}}</p>
         </div>
     </div>
     <!-- 菜品区域 -->
-    <div v-bind:disabled="isAllreadyOrdered || finishedEnabled">
+    <div>
         <div v-for="(value, key, index) in product_dict">
             <div style="margin-left: 15px;">
                 <h6>{{index + 1}}. {{key}}&nbsp;<span class="badge badge-pill badge-primary">单选</span></h6>
                 <div class="radio radio-primary form-check" v-for="(item) in value" style="margin-top: 5px;">
-                    <input type="radio" name="item" v-model="order.Product" v-bind:value="key+'-'+item" class="form-check-input" v-bind:id="key+'-'+ item">
+                    <input type="radio" name="item" v-model="order.Product" v-bind:value="key+'-'+item" class="form-check-input" v-bind:id="key+'-'+ item" v-bind:disabled="isAllreadyOrdered || finishedEnabled">
                     <label class="form-check-label" v-bind:for="key+'-'+ item">
                         {{item}}
                     </label>
@@ -190,67 +189,75 @@
         </div>
     </div>
     <!-- 管理员区域 -->
-<div class="my-3" v-if="isAdmin" style="margin: 15px;">
-    <!-- 数据统计区域 -->
-    <table class="table table-bordered table-fixed table-sm">
-        <thead>
-        <tr>
-            <td width="70%" class="text-center">菜品</td>
-            <td width="30%" class="text-center">数量</td>
-        </tr>
-        </thead>
-        <tbody>
-            <tr v-for="(value, key) in orderSummary">
-                <td style="text-align: center;">{{key}}</td>
-                <td style="text-align: center;">{{value}}</td>
-            </tr>
-        </tbody>
-    </table>
-    <table class="table table-bordered table-sm table-fixed">
-        <thead>
-        <tr>
-            <td width="15%" class="text-center">序号</td>
-            <td width="20%" class="text-center">姓名</td>
-            <td width="40%" class="text-center">品种</td>
-            <td class="text-center">备注</td>
-        </tr>
-        </thead>
-        <tbody>
-        <tr v-for="(order, index) in orders">
-            <td style="text-align: center;">{{index+1}}</td>
-            <td style="text-align: center;">{{order.Name}}</td>
-            <td style="text-align: center;">{{order.Product}}</td>
-            <td style="text-align: center;">{{order.Memo}}</td>
-        </tr>
-        </tbody>
-    </table>
-    <div class="text-right">
+    <div class="my-3" v-if="isAdmin" style="margin: 15px;">
+        <!-- 数据统计区域 -->
+        <table class="table table-bordered table-fixed table-sm">
+            <thead>
+                <tr>
+                    <td width="70%" class="text-center">菜品</td>
+                    <td width="30%" class="text-center">数量</td>
+                </tr>
+            </thead>
+            <tbody>
+                <tr v-for="(value, key) in orderSummary">
+                    <td style="text-align: center;">{{key}}</td>
+                    <td style="text-align: center;">{{value}}</td>
+                </tr>
+            </tbody>
+        </table>
+        <table class="table table-bordered table-sm table-fixed">
+            <thead>
+                <tr>
+                    <td width="15%" class="text-center">序号</td>
+                    <td width="20%" class="text-center">姓名</td>
+                    <td width="40%" class="text-center">品种</td>
+                    <td class="text-center">备注</td>
+                </tr>
+            </thead>
+            <tbody>
+                <tr v-for="(order, index) in orders">
+                    <td style="text-align: center;">{{index+1}}</td>
+                    <td style="text-align: center;">{{order.Name}}</td>
+                    <td style="text-align: center;">{{order.Product}}</td>
+                    <td style="text-align: center;">{{order.Memo}}</td>
+                </tr>
+            </tbody>
+        </table>
+        <div class="text-right">
+            <div class="form-group">
+                <button type="button" class="btn btn-outline-primary" v-on:click="refreshOrderList">
+                    <span class="icon ion-md-refresh"></span>
+                    <span class="ml-1">刷新订餐清单</span>
+                </button>
+            </div>
+        </div>
         <div class="form-group">
-            <button type="button" class="btn btn-outline-primary" v-on:click="refreshOrderList">
-                <span class="icon ion-md-refresh"></span>
-                <span class="ml-1">刷新订餐清单</span>
+            <label>小程序标题</label>
+            <input class="form-control" v-model="sysParams.Title" />
+        </div>
+        <div class="form-group">
+            <label>小程序描述</label>
+            <textarea rows="5" class="form-control" v-model="sysParams.Description"></textarea>
+        </div>
+        <div class="form-group">
+            <label>联系人手机</label>
+            <input class="form-control" v-model="sysParams.ContactMob">
+        </div>
+        <div class="form-group">
+            <label>截止时间(如1050=17*60+30)</label>
+            <input type="number" class="form-control" v-model="sysParams.Deadline">
+        </div>
+        <div class="form-group">
+            <label>订餐品种</label>
+            <textarea rows="6" class="form-control" v-model="products"></textarea>
+        </div>
+        <div class="text-right">
+            <button type="button" class="btn btn-outline-success" v-on:click="modifySysParams">
+                <span class="icon ion-md-checkmark-circle-outline"></span>
+                <span class="ml-1">保存系统参数</span>
             </button>
         </div>
     </div>
-    <div class="form-group">
-        <label>联系人手机</label>
-        <input class="form-control" v-model="sysParams.ContactMob">
-    </div>
-    <div class="form-group">
-        <label>截止时间(如1050=17*60+30)</label>
-        <input type="number" class="form-control" v-model="sysParams.Deadline">
-    </div>
-    <div class="form-group">
-        <label>订餐品种</label>
-        <textarea rows="6" class="form-control" v-model="products"></textarea>
-    </div>
-    <div class="text-right">
-        <button type="button" class="btn btn-outline-success" v-on:click="modifySysParams">
-            <span class="icon ion-md-checkmark-circle-outline"></span>
-            <span class="ml-1">保存系统参数</span>
-        </button>
-    </div>
-</div>
     <div class="msg" v-bind:class="{active : isShowMsg}">{{msg}}</div>
 </div>
 <script src="//cdn.bootcss.com/jquery/3.2.1/jquery.min.js"></script>

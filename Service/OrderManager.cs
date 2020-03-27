@@ -305,6 +305,8 @@ namespace Pydc.Service
                     sysPara.ContactMob = "";
                     sysPara.AdminUserId = "";
                     sysPara.Deadline = 17 * 60 + 30;
+                    sysPara.Title = "";
+                    sysPara.Description = "";
                 }
             }
 

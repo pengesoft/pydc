@@ -17,6 +17,8 @@ namespace Pydc.Domain
         private string _AdminUserId;      // 管理员钉钉UserId
         private int _Deadline;      // 订餐截止时间
         private string[] _Products;      // 可选产品
+        private string _Title;
+        private string _Description;
 
         #endregion
 
@@ -40,6 +42,18 @@ namespace Pydc.Domain
         /// </summary>
         public string[] Products { get { return _Products; } set { _Products = value; } }
 
+        public string Title
+        {
+            get { return _Title; }
+            set { _Title = value; }
+        }
+
+        public string Description
+        {
+            get { return _Description;}
+            set { _Description = value; }
+        }
+
         #endregion
 
         #region 重载公共函数
@@ -55,6 +69,8 @@ namespace Pydc.Domain
             _AdminUserId = null;
             _Deadline = 0;
             _Products = new string[0];
+            _Title = null;
+            _Description = null;
         }
 
 #if SILVERLIGHT
@@ -71,6 +87,8 @@ namespace Pydc.Domain
             WriteXMLValue(node, "AdminUserId", _AdminUserId);
             WriteXMLValue(node, "Deadline", _Deadline);
             WriteXMLValue(node, "Products", _Products);
+            WriteXMLValue(node, "Title", _Title);
+            WriteXMLValue(node, "Description", _Description);
         }
 
         /// <summary>
@@ -85,6 +103,8 @@ namespace Pydc.Domain
             ReadXMLValue(node, "AdminUserId", ref _AdminUserId);
             ReadXMLValue(node, "Deadline", ref _Deadline);
             ReadXMLValue(node, "Products", ref _Products);
+            ReadXMLValue(node, "Title", ref _Title);
+            ReadXMLValue(node, "Description", ref _Description);
         }
 #endif
 
@@ -103,6 +123,8 @@ namespace Pydc.Domain
                 _AdminUserId = s._AdminUserId;
                 _Deadline = s._Deadline;
                 _Products = (string[])s._Products.Clone();
+                _Title = s._Title;
+                _Description = s._Description;
             }
         }
 
