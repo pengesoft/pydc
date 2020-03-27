@@ -14,6 +14,7 @@
                 orders: [],
                 products: '',
                 product_dict: null, // 新版订餐程序保存键值对
+                orderSummary: null,
                 sysParams: new SysParams(),
                 userId: '',
                 userName: '',
@@ -135,6 +136,15 @@
                     (orders) => {
                         if (orders) {
                             this.orders = orders._Items;
+                            // 对订单进行数据统计
+                            var summary = {}
+                            for (var i = 0; i < this.orders.length; i++) {
+                                if (summary[this.orders[i].Product] === undefined)
+                                    summary[this.orders[i].Product] = 0;
+                                summary[this.orders[i].Product] += 1;
+                            }
+
+                            this.orderSummary = summary;
                         }
                     }
                 );
