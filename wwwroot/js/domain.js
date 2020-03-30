@@ -70,5 +70,15 @@ function SysParams(){
      * 可选产品  
      * @property {Products} 可选产品 
      */
-    this.Products     = new Array();
+    this.Products = new Array();
+
+    /**
+     * 显示的标题
+     */
+    this.Title = null;
+
+    /**
+     * 网页显示的描述
+     */
+    this.Description = null;
 }
