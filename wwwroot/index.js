@@ -49,7 +49,7 @@
                 orderSvr.GetSysParams(this.userId,
                     (para) => {
                         this.sysParams = para;
-                        // this.products = getProductsText(para.Products);
+                        this.products = getProductsText(para.Products);
                         this.product_dict = getProductsDict(para.Products);
                     }
                 );
@@ -135,7 +135,10 @@
                     1,
                     (orders) => {
                         if (orders) {
-                            this.orders = orders._Items;
+                            var ors = orders._Items.sort(function(a, b) {
+                                return Date.parse(a.CheckTime) - Date.parse(b.CheckTime);
+                            });
+                            this.orders = ors;
                             // 对订单进行数据统计
                             var summary = {}
                             for (var i = 0; i < this.orders.length; i++) {

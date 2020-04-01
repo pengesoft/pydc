@@ -8,7 +8,9 @@ using Pydc.Domain;
 using ServiceStack.Redis;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
+using Microsoft.EntityFrameworkCore.Internal;
 
 namespace Pydc.Service
 {
@@ -262,24 +264,34 @@ namespace Pydc.Service
             }
             if (!status.Finished)
             {
-                var orders = GetOrders(userId, "", 1);
-                if (orders.Count > 0)
+                var orders = GetOrders(userId, "", 1).ToList();
+                var productType = orders.First(p => p.UserId == userId).Product.Split('-')[0];
+                var theSameTypeOrder = orders.Where(p => p.Product.StartsWith(productType));
+                if (theSameTypeOrder.Any())
                 {
-                    StringBuilder ids = new StringBuilder();
-                    foreach (Order order in orders)
-                    {
-                        if (userId != order.UserId)
-                        {
-                            ids.Append(order.UserId);
-                            ids.Append(',');
-                        }
-                    }
-                    ids.Length = ids.Length - 1;
-                    string msg = "小伙伴，餐到了，快来取哦！";
-                    Utils.SendNotifyTextMsgEx(auther.GetAccessToken(), auther.AgentId, ids.ToString(), msg);
+                    var ids = theSameTypeOrder.Select(p => p.UserId).Join(",");
+                    string msg = $"小伙伴，{productType}到了，快来取哦！";
+                    Utils.SendNotifyTextMsgEx(auther.GetAccessToken(), auther.AgentId, ids, msg);
 
                     return 0;
                 }
+                //if (orders.Count > 0)
+                //{
+                //    StringBuilder ids = new StringBuilder();
+                //    foreach (Order order in orders)
+                //    {
+                //        if (userId != order.UserId)
+                //        {
+                //            ids.Append(order.UserId);
+                //            ids.Append(',');
+                //        }
+                //    }
+                //    ids.Length = ids.Length - 1;
+                //    string msg = "小伙伴，餐到了，快来取哦！";
+                //    Utils.SendNotifyTextMsgEx(auther.GetAccessToken(), auther.AgentId, ids.ToString(), msg);
+
+                //    return 0;
+                //}
                 else
                     return -2003;
             }
